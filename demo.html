@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dependent Questions</title>
+</head>
+<body>
+  <form action="?" id="myform">
+    <div class="sq-form-question">
+      <div class="sq-form-question-title">Would you like to see another question?</div>
+      <span>
+        <input type="radio" name="q72:q1" value="0" id="q72_q1_0"/>
+        <label for="q72_q1_0">No</label>
+      </span>
+      <span>
+        <input type="radio" name="q72:q1" value="1" id="q72_q1_1"/>
+        <label for="q72_q1_1">Yes</label>
+      </span>
+    </div>
+    <div class="sq-form-question">
+      <label for="extra">What else would you like to add?</label>
+      <input type="text" name="q72:q2" id="extra"  data-depends-on="q72:q1=1"/>
+    </div>
+
+    <div class="sq-form-question">
+      <label for="noshow">Should another field show?</label>
+      <select id="noshow" name="q72:q3">
+        <option value="nope" selected="selected">Nope</option>
+        <option value="yep">Yep</option>
+        <option value="yeah">Yeah</option>
+        <option value="probably">Probably</option>
+      </select>
+    </div>
+    <div class="sq-form-question">
+      <label for="extra">You didn't say Nope!</label>
+      <input type="text" name="q72:q2" id="extra"  data-depends-off="q72:q3=nope"/>
+    </div>
+
+  </form>
+
+  <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+  <script src="jquery.matrix-dependent-questions.js"></script>
+  <script>
+    $("#myform").dependentQuestions();
+  </script>
+</body>
