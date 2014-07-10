@@ -24,15 +24,15 @@
     <div class="sq-form-question">
       <label for="noshow">Should another field show?</label>
       <select id="noshow" name="q72:q3">
-        <option value="nope" selected="selected">Nope</option>
-        <option value="yep">Yep</option>
+        <option value="nope">Nope</option>
+        <option value="yep" selected="selected">Yep</option>
         <option value="yeah">Yeah</option>
         <option value="probably">Probably</option>
       </select>
     </div>
     <div class="sq-form-question">
       <label for="extra">You didn't say Nope!</label>
-      <input type="text" name="q72:q2" id="extra"  data-depends-off="q72:q3=nope"/>
+      <input type="text" name="q72:q2" id="extra"  data-depends-on="q72:q3=!nope"/>
     </div>
 
   </form>
