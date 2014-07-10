@@ -91,7 +91,7 @@
 
         // Fetch all the elements with "data-depends-on" attributes.
         if (!this.element.find) { this.element = $(this.element); }
-        questions = this.element.find("[data-depends-on], [data-depends-off]")
+        questions = this.element.find("[data-depends-on]")
                         .parents(".sq-form-question");
 
         // Get the value of a form element by name, even if it is a radio button
@@ -122,64 +122,57 @@
             toggler    = $(evt.target);
             toggleSpec = toggler.data("toggle-spec") || [];
             $.each(toggleSpec, function(i, spec) {
-                var dependents, showVal, val, show, effectFunc, action;
+                var dependents, showVal, val, negate, show, effectFunc, action;
                 dependents = spec.dependents;
                 showVal    = spec.showVal;
+                negate     = (showVal[0] === "!");
+                if (negate) {
+                    showVal = showVal.substring(1);
+                }
                 val        = getValueByName(toggler.attr("name"));
-                show       = (typeof val === "object") ?
-                                 contains(val, showVal) :
-                                 (val === showVal);
 
-                // 'on'
+                if (typeof val === "object") {
+                    show = contains(val, showVal);
+                }
+                else {
+                    show = (val === showVal);
+                }
+                if (negate) {
+                    show = !show;
+                }
+
                 action     = (show) ? "show" : "hide";
                 effectFunc = effectsMap[effect][action];
-                dependents.dependModeOn[effectFunc](duration);
-
-                // reverse it for 'off'
-                action     = (show) ? "hide" : "show";
-                effectFunc = effectsMap[effect][action];
-                dependents.dependModeOff[effectFunc](duration);
+                dependents[effectFunc](duration);
             });
         }
 
         // Create a map of things that need to be toggled.
         function addMapEntry(i, element) {
-            var data, el, onOff;
-            el    = $(element);
-            data  = el.find("[data-depends-on]").data("depends-on");
-            onOff = "dependModeOn";
-
-            if (typeof data === 'undefined') {
-                data  = el.find("[data-depends-off]").data("depends-off");
-                onOff = "dependModeOff";
-            }
-
-            if (typeof dependentsMap[data] === 'undefined') {
-                dependentsMap[data] = {};
-            }
-
-            if (!dependentsMap[data][onOff]) {
-                dependentsMap[data][onOff] = el;
+            var data, el;
+            el   = $(element);
+            data = el.find("[data-depends-on]").data("depends-on");
+            if (!dependentsMap[data]) {
+                dependentsMap[data] = el;
             } else {
-                dependentsMap[data][onOff] = el.add(dependentsMap[data]);
+                dependentsMap[data] = el.add(dependentsMap[data]);
             }
         }
         questions.each(addMapEntry);
 
         // Create event listeners
         function setListener(key, dependents) {
-            var matches, name, showVal, toggler, toggleSpec;
+            var matches, inverse, name, showVal, toggler, toggleSpec;
 
             // Parse the key value
             matches = dataRe.exec(key);
             if (!matches) { return; }
-            name      = matches[1];
-            showVal   = matches[2];
+            name    = matches[1];
+            showVal = matches[2];
 
             // Grab the relevant elements
             toggler    = $("[name=\"" + name + "\"]");
             toggleSpec = toggler.data("toggle-spec") || [];
-
             toggleSpec.push({
                 dependents: dependents,
                 showVal:    showVal
@@ -191,32 +184,34 @@
 
         // Set the initial state of each dependent question to match form state.
         function showHideByValue(key, dependents) {
-            var matches, name, showVal, toggler, val, func, hasMatch;
-
-            if (typeof dependents.dependModeOn  === 'undefined') { dependents.dependModeOn  = $(); }
-            if (typeof dependents.dependModeOff === 'undefined') { dependents.dependModeOff = $(); }
-
+            var matches, name, showVal, toggler, val, negate, func, show;
             // Parse the key value
             matches = dataRe.exec(key);
             if (!matches) { return; }
             name    = matches[1];
             showVal = matches[2];
 
+            // Work out whether or not to show the value
             toggler = $("[name=\"" + name + "\"]");
-            val     = getValueByName(name);
+
+            negate     = (showVal[0] === "!");
+            if (negate) {
+                showVal = showVal.substring(1);
+            }
+            val        = getValueByName(toggler.attr("name"));
+
             if (typeof val === "object") {
-                hasMatch = contains(val, showVal);
-            } else {
-                hasMatch = (val === showVal);
+                show = contains(val, showVal);
+            }
+            else {
+                show = (val === showVal);
+            }
+            if (negate) {
+                show = !show;
             }
 
-            func = (hasMatch) ? "show" : "hide";
-            dependents.dependModeOn[func]();
-
-            // Switch it around for off
-            func = (hasMatch) ? "hide" : "show";
-            dependents.dependModeOff[func]();
-
+            func = (show) ? "show" : "hide";
+            dependents[func]();
         }
         $.each(dependentsMap, showHideByValue);
     };
